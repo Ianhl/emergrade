@@ -1,0 +1,331 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StyleSense | Sustainable Fashion Technology</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'main.css' %}" />
+</head>
+<body>
+    <!-- Header -->
+    <header id="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="#" class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    Emer<span>grade</span>
+                </a>
+                <ul class="nav-links">
+                    <li><a href="#problem">Problem</a></li>
+                    <li><a href="#solution">Solution</a></li>
+                    <li><a href="#how-it-works">How It Works</a></li>
+                    <li><a href="#team">Team</a></li>
+                    <li><a href="#cta" class="btn btn-primary">Try Demo</a></li>
+                </ul>
+                <div class="hamburger">
+                    <i class="fas fa-bars"></i>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>Reduce Fashion Waste with <span>AI-Powered Insights</span></h1>
+                    <p>StyleSense combines virtual try-on technology with brainwave monitoring to help you make sustainable fashion choices and reduce impulse purchases.</p>
+                    <div class="hero-buttons">
+                        <a href="#cta" class="btn btn-primary">
+                            <i class="fas fa-play-circle"></i>
+                            Try Virtual Try-On
+                        </a>
+                        <a href="#how-it-works" class="btn btn-secondary">
+                            <i class="fas fa-info-circle"></i>
+                            Learn More
+                        </a>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <img src="{% static 'images/fast_fashion_img.jpeg'%}" alt="Sustainable Fashion">
+                    <div class="floating-elements">
+                        <div class="floating-element">
+                            <i class="fas fa-tshirt"></i>
+                        </div>
+                        <div class="floating-element">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div class="floating-element">
+                            <i class="fas fa-leaf"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Problem Section -->
+    <section id="problem" class="problem">
+        <div class="container">
+            <div class="section-title">
+                <h2>The Fashion Waste Crisis</h2>
+                <p>Fast fashion is destroying our planet. We're here to change that.</p>
+            </div>
+            <div class="problem-content">
+                <div class="problem-image">
+                    <img src="{% static 'images/fast_fashion_effects.webp'%}" alt="Clothing Waste">
+                </div>
+                <div class="problem-text">
+                    <h2>Fast Fashion's Environmental Impact</h2>
+                    <p>The fashion industry is the second largest polluter in the world, just after the oil industry. Every year, millions of tons of clothing are discarded, with a significant portion ending up in landfills or being shipped to developing countries.</p>
+                    <p>Impulse purchases account for a large percentage of fashion waste, as consumers buy items they don't need or that don't fit properly, only to discard them after minimal use.</p>
+                    <div class="stats">
+                        <div class="stat">
+                            <h3>92M</h3>
+                            <p>Tons of textile waste annually</p>
+                        </div>
+                        <div class="stat">
+                            <h3>60%</h3>
+                            <p>Clothing discarded within a year</p>
+                        </div>
+                        <div class="stat">
+                            <h3>15M</h3>
+                            <p>Garments dumped weekly in Ghana</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solution Section -->
+    <section id="solution" class="solution">
+        <div class="container">
+            <div class="section-title">
+                <h2>Our Innovative Solution</h2>
+                <p>Combining cutting-edge technology with sustainable practices</p>
+            </div>
+            <div class="solution-grid">
+                <div class="solution-card">
+                    <div class="solution-icon">
+                        <i class="fas fa-tshirt"></i>
+                    </div>
+                    <h3>Virtual Try-On Technology</h3>
+                    <p>Our advanced VTON system allows you to see how clothes will look on your body before purchasing, reducing returns and ensuring better fit satisfaction.</p>
+                </div>
+                <div class="solution-card">
+                    <div class="solution-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>Brainwave Monitoring</h3>
+                    <p>Using the Muse 2 headset, we analyze your brain activity to detect impulse purchasing patterns and provide real-time alerts to encourage mindful shopping.</p>
+                </div>
+                <div class="solution-card">
+                    <div class="solution-icon">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    <h3>Sustainable Impact</h3>
+                    <p>By reducing impulse purchases and improving fit accuracy, we help decrease clothing waste and promote a more sustainable fashion ecosystem.</p>
+                </div>
+                <div class="solution-card">
+                    <div class="solution-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Personalized Insights</h3>
+                    <p>Receive detailed analytics about your shopping habits and environmental impact, empowering you to make more conscious fashion choices.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="how-it-works">
+        <div class="container">
+            <div class="section-title">
+                <h2>How StyleSense Works</h2>
+                <p>Our simple 4-step process to sustainable shopping</p>
+            </div>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Set Up Your Profile</h3>
+                    <p>Create your digital avatar with accurate body measurements for precise virtual try-ons.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Connect Muse Headset</h3>
+                    <p>Pair your Muse 2 headset to monitor brain activity during shopping sessions.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Virtual Try-On</h3>
+                    <p>See how clothing items look on your avatar before making a purchase decision.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3>Get Impulse Alerts</h3>
+                    <p>Receive notifications when our system detects impulse buying patterns.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section id="team" class="team">
+        <div class="container">
+            <div class="section-title">
+                <h2>Our Team</h2>
+                <p>6 passionate developers working to solve fashion sustainability</p>
+            </div>
+            <div class="team-grid">
+                <div class="team-member">
+                    <div class="member-image">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h3>Andrei</h3>
+                    <p>Developer</p>
+                </div>
+                <div class="team-member">
+                    <div class="member-image">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h3>Ian</h3>
+                    <p>Developer</p>
+                </div>
+                <div class="team-member">
+                    <div class="member-image">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h3>Bon</h3>
+                    <p>Developer</p>
+                </div>
+                <div class="team-member">
+                    <div class="member-image">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h3>Kiet</h3>
+                    <p>Developer</p>
+                </div>
+                <div class="team-member">
+                    <div class="member-image">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h3>Jeremelle</h3>
+                    <p>Developer</p>
+                </div>
+                <div class="team-member">
+                    <div class="member-image">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h3>Trisha</h3>
+                    <p>Developer</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section id="cta" class="cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to Make a Difference?</h2>
+                <p>Join our mission to reduce fashion waste. Try our virtual try-on demo and experience the future of sustainable shopping.</p>
+                <a href="#" class="btn">Try Demo Now</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>StyleSense</h3>
+                    <p>Reducing fashion waste through innovative technology and mindful shopping practices.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h3>Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="#problem">The Problem</a></li>
+                        <li><a href="#solution">Our Solution</a></li>
+                        <li><a href="#how-it-works">How It Works</a></li>
+                        <li><a href="#team">Our Team</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Technology</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Virtual Try-On</a></li>
+                        <li><a href="#">Brainwave Monitoring</a></li>
+                        <li><a href="#">Machine Learning</a></li>
+                        <li><a href="#">Sustainability Impact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Contact Us</h3>
+                    <ul class="footer-links">
+                        <li><a href="mailto:info@stylesense.com"><i class="fas fa-envelope"></i> info@stylesense.com</a></li>
+                        <li><a href="#"><i class="fas fa-code-branch"></i> Hackathon Project</a></li>
+                        <li><a href="#"><i class="fab fa-github"></i> GitHub Repository</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2023 StyleSense. A hackathon project dedicated to reducing fashion waste.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        document.querySelector('.hamburger').addEventListener('click', function() {
+            document.querySelector('.nav-links').classList.toggle('active');
+        });
+
+        // Header scroll effect
+        window.addEventListener('scroll', function() {
+            const header = document.getElementById('header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Smooth scrolling for anchor links
+        document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    // Close mobile menu if open
+                    const navLinks = document.querySelector('.nav-links');
+                    if (navLinks) {
+                        navLinks.classList.remove('active');
+                    }
+                    
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    });
