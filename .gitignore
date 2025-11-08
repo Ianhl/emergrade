@@ -21,3 +21,6 @@ staticfiles/
 
 # macOS
 .DS_Store
+
+#EEG csv readings
+.csv
