@@ -25,8 +25,27 @@ SECRET_KEY = 'django-insecure-py&!)*mcq9f7@^f(%zljl773wxncv8-*q2k++ds#m8_hu!^za&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+#ALLOWED_HOSTS = []
+# Allowed hosts for testing
 
+from pathlib import Path
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+ALLOWED_HOSTS = ["*", "localhost", "127.0.0.1"]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "https://localhost:8000",
+    "https://127.0.0.1:8000",
+    "https://*.githubpreview.dev",
+    "https://*.app.github.dev",
+]
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # Application definition
 
@@ -71,6 +90,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'emergrade.wsgi.application'
 
+# Media
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
