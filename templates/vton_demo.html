@@ -1,0 +1,248 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Virtual Try-On Demo</title>
+  <link rel="stylesheet" href="{% static 'main.css' %}">
+  <style>
+    :root { --border:#d1d5db; --focus:#3b82f6; --soft:#f9fafb; --text:#111827; --muted:#6b7280; }
+    body { color: var(--text); }
+    .wrap{max-width:1400px;margin:2rem auto;padding:1.25rem}
+
+      /* Back button top-left */
+    .back-top{
+      position:absolute; top:1rem; left:1rem;
+      background:#6b7280; color:#fff;
+      padding:.55rem 1rem; border-radius:9999px; text-decoration:none;
+      font-size:.9rem;
+    }
+    .back-top:hover{background:#4b5563}
+
+    /* 4-column grid: person, garment, result */
+    .grid{display:grid;gap:0.9rem;align-items:stretch;grid-auto-rows:1fr;}
+    @media (min-width: 640px){ .grid{grid-template-columns:repeat(2,1fr);} }
+    @media (min-width: 1024px){ .grid{grid-template-columns:repeat(4,1fr);} }
+
+    .card{background:#fff;border-radius:12px;padding:.75rem;box-shadow:0 6px 20px rgba(0,0,0,.05);display:flex;flex-direction:column;height:100%;}
+    .card h3{margin:.25rem 0 .5rem}
+
+    .btn{display:inline-block;padding:.55rem .9rem;border-radius:9999px;background:#2d6cdf;color:#fff;border:0;cursor:pointer;font-size:.9rem}
+    .btn.secondary{background:#6b7280}
+    .loading-msg{margin-top:1rem;color:#2563eb;font-weight:500;display:none;text-align:center}
+
+    /* Paste/Upload box (same compact style) */
+    .dropwrap{display:flex;flex-direction:column;gap:.5rem}
+    .dropzone{border:2px dashed var(--border);border-radius:10px;background:var(--soft);padding:.5rem;user-select:none;transition:border-color .2s,box-shadow .2s,background .2s}
+    .dropzone.highlight{border-color:var(--focus);box-shadow:0 0 0 3px rgba(59,130,246,.15);background:#eef5ff}
+    .dz-inner{position:relative;width:100%;aspect-ratio:3/4;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .dz-placeholder{text-align:center;color:var(--muted);font-size:.9rem;line-height:1.3;padding:0 .5rem}
+    .dz-img{display:none;width:100%;height:100%;object-fit:contain}
+
+    .dz-controls{display:flex;align-items:center;justify-content:space-between;padding-top:.5rem}
+    .btn-clear{display:none}
+
+    /* RESULT box keeps aspect & never stretches */
+    .result-inner{position:relative;width:100%;aspect-ratio:3/4;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .result-inner img{display:block;width:100%;height:100%;object-fit:contain}
+    .result-placeholder{color:var(--muted);font-size:.95rem;text-align:center;padding:0 .5rem}
+  
+    /* Try On button centered between grid rows */
+    .center-row{display:flex;justify-content:center;align-items:center;height:100%}
+
+    /* Bulky arrow button with blue→purple→green gradient */
+    .arrow-btn{
+      --padY: .9rem; --padX: 1.4rem;
+      position: relative;
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: var(--padY) calc(var(--padX) + 18px) var(--padY) var(--padX);
+      font-size: 1.05rem; font-weight: 700; color:#fff;
+      background: linear-gradient(90deg,#2563eb 50%, #7e22ce 100%);
+      border: 0; cursor: pointer;
+      border-radius: 9999px;              /* chunky pill */
+      box-shadow: 0 10px 24px rgba(0,0,0,.15);
+      transition: transform .08s ease, box-shadow .08s ease, opacity .2s ease;
+    }
+
+    /* Arrow head */
+    .arrow-btn::after{
+      content:"";
+      position:absolute;
+      right: 10px;                         /* inside the pill’s right side */
+      width: 0; height: 0;
+      border-top: 10px solid transparent;
+      border-bottom: 10px solid transparent;
+      border-left: 14px solid rgba(255,255,255,0.95); /* white arrow head */
+    }
+
+    /* Hover/active/disabled states */
+    .arrow-btn:hover{ transform: translateY(-1px); box-shadow:0 12px 28px rgba(0,0,0,.18); }
+    .arrow-btn:active{ transform: translateY(0); box-shadow:0 8px 18px rgba(0,0,0,.14); }
+    .arrow-btn:disabled{
+      opacity:.6; cursor:not-allowed;
+      box-shadow:0 6px 14px rgba(0,0,0,.1);
+    }
+
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a href="/" class="back-top">Back to Home</a>
+
+    <h1 style="text-align:center;margin-top:2rem;">Virtual Try-On Demo</h1>
+    <p style="text-align:center">Paste or upload a person photo and a garment image, then click Try On.</p>
+    {% if error %}<div class="error" style="color:#b00020;text-align:center">{{ error }}</div>{% endif %}
+
+    <p id="loadingMsg" class="loading-msg">
+        Generating your try-on image… This may take a few moments. Please be patient.
+    </p>
+
+    <form method="post" enctype="multipart/form-data" id="tryonForm">
+      {% csrf_token %}
+      <div class="grid">
+        <!-- PERSON -->
+        <div class="card">
+          <h3>Person image</h3>
+          <div class="dropwrap">
+            <div class="dropzone" data-target="personInput" tabindex="0" aria-label="Paste or drop a person image">
+              <div class="dz-inner">
+                <img class="dz-img" alt="Person preview">
+                <div class="dz-placeholder">
+                  <strong>Click to focus, then paste (Ctrl/Cmd-V)</strong><br>or drag & drop an image
+                </div>
+              </div>
+            </div>
+            <div class="dz-controls">
+              <div>
+                <input type="file" id="personInput" name="person" accept="image/*" hidden>
+                <button type="button" class="btn" data-picker="personInput">Upload</button>
+              </div>
+              <button type="button" class="btn secondary btn-clear" data-clear="personInput">Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- GARMENT -->
+        <div class="card">
+          <h3>Garment image</h3>
+          <div class="dropwrap">
+            <div class="dropzone" data-target="garmentInput" tabindex="0" aria-label="Paste or drop a garment image">
+              <div class="dz-inner">
+                <img class="dz-img" alt="Garment preview">
+                <div class="dz-placeholder">
+                  <strong>Click to focus, then paste (Ctrl/Cmd-V)</strong><br>or drag & drop an image
+                </div>
+              </div>
+            </div>
+            <div class="dz-controls">
+              <div>
+                <input type="file" id="garmentInput" name="garment" accept="image/*" hidden>
+                <button type="button" class="btn" data-picker="garmentInput">Upload</button>
+              </div>
+              <button type="button" class="btn secondary btn-clear" data-clear="garmentInput">Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="center-row">
+          <button id="tryonBtn" type="submit" class="arrow-btn" aria-label="Try On">
+            Try On
+          </button>
+        </div>
+
+        <!-- RESULT -->
+        <div class="card">
+          <h3>Result</h3>
+          <div class="result-inner" id="resultBox">
+            {% if out_url %}
+              <img src="{{ out_url }}" alt="Output image">
+            {% else %}
+              <div class="result-placeholder" id="resultPlaceholder">
+                The generated image will appear here after you click <b>Try On</b>.
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+    </form>
+  </div>
+
+  <script>
+    // ---------- file/paste helpers ----------
+    function setFilesOnInput(inputEl, fileList) {
+      const dt = new DataTransfer();
+      for (const f of fileList) dt.items.add(f);
+      inputEl.files = dt.files;
+    }
+    function showPreview(dropzone, file) {
+      const img = dropzone.querySelector('.dz-img');
+      const ph  = dropzone.querySelector('.dz-placeholder');
+      const id  = dropzone.getAttribute('data-target');
+      const clr = document.querySelector(`.btn-clear[data-clear="${id}"]`);
+      const url = URL.createObjectURL(file);
+      img.src = url; img.style.display = 'block';
+      ph.style.display = 'none';
+      if (clr) clr.style.display = 'inline-block';
+      img.onload = () => URL.revokeObjectURL(url);
+    }
+    function clearPreviewByInputId(inputId) {
+      const input = document.getElementById(inputId);
+      const dz = document.querySelector(`.dropzone[data-target="${inputId}"]`);
+      if (!input || !dz) return;
+      dz.querySelector('.dz-img').style.display = 'none';
+      dz.querySelector('.dz-img').src = '';
+      dz.querySelector('.dz-placeholder').style.display = 'block';
+      input.value = '';
+      const clr = document.querySelector(`.btn-clear[data-clear="${inputId}"]`);
+      if (clr) clr.style.display = 'none';
+    }
+    function highlight(dz, on) { dz.classList.toggle('highlight', !!on); }
+
+    function wireDropzone(dz) {
+      const inputId = dz.getAttribute('data-target');
+      const input   = document.getElementById(inputId);
+
+      // Do NOT open file picker on box click; only focus/paste/drag
+      dz.addEventListener('focus', () => highlight(dz, true));
+      dz.addEventListener('blur',  () => highlight(dz, false));
+
+      ['dragenter','dragover'].forEach(evt => dz.addEventListener(evt, e => { e.preventDefault(); highlight(dz, true); }));
+      ['dragleave','drop'].forEach(evt => dz.addEventListener(evt, e => { e.preventDefault(); highlight(dz, false); }));
+      dz.addEventListener('drop', e => {
+        const files = Array.from(e.dataTransfer.files || []).filter(f => f.type.startsWith('image/'));
+        if (files.length){ setFilesOnInput(input, files); showPreview(dz, files[0]); }
+      });
+      dz.addEventListener('paste', e => {
+        const items = e.clipboardData?.items || [];
+        for (const it of items) {
+          if (it.type && it.type.startsWith('image/')) {
+            const blob = it.getAsFile();
+            const file = new File([blob], 'pasted.png', { type: blob.type });
+            setFilesOnInput(input, [file]); showPreview(dz, file); e.preventDefault(); break;
+          }
+        }
+      });
+
+      const pickBtn = document.querySelector(`[data-picker="${inputId}"]`);
+      pickBtn?.addEventListener('click', () => input.click());
+      const clrBtn = document.querySelector(`.btn-clear[data-clear="${inputId}"]`);
+      clrBtn?.addEventListener('click', () => clearPreviewByInputId(inputId));
+      input.addEventListener('change', () => input.files && input.files[0] ? showPreview(dz, input.files[0]) : clearPreviewByInputId(inputId));
+    }
+
+    document.querySelectorAll('.dropzone').forEach(wireDropzone);
+
+    // Disable button + update message + placeholder while submitting
+    const form = document.getElementById('tryonForm');
+    const btn  = document.getElementById('tryonBtn');
+    const msg  = document.getElementById('loadingMsg');
+    form?.addEventListener('submit', () => {
+      btn.disabled = true; btn.style.opacity = '0.7'; btn.textContent = 'Processing…';
+      msg.style.display = 'block';
+      const ph = document.getElementById('resultPlaceholder');
+      if (ph) ph.textContent = 'Generating… please wait.';
+    });
+  </script>
+</body>
+</html>
