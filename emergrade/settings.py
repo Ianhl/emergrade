@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
-SECRET_KEY = 'django-insecure-py&!)*mcq9f7@^f(%zljl773wxncv8-*q2k++ds#m8_hu!^za&'
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -35,8 +35,9 @@ DEBUG = True
 #ALLOWED_HOSTS = []
 # Allowed hosts for testing
 
-# ALLOWED_HOSTS = ['your-app-name.onrender.com', 'localhost', '127.0.0.1']
-# DATABASES = {'default': dj_database_url.config(default='sqlite:///db.sqlite3')}
+ALLOWED_HOSTS = ['your-app-name.onrender.com', 'localhost', '127.0.0.1']
+
+DATABASES = {'default': dj_database_url.config(default='sqlite:///db.sqlite3')}
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS = True
@@ -56,7 +57,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 MEDIA_URL = "/media/"
 MEDIA_ROOT =  os.path.join(BASE_DIR, 'media')
 
-ALLOWED_HOSTS = ["*", "localhost", "127.0.0.1","cautious-funicular-v6qv7vrjg65qfvxp-8000.app.github.dev"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1",'.onrender.com']
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
@@ -131,12 +132,12 @@ WSGI_APPLICATION = 'emergrade.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 # DATABASES = {
 #     'default': dj_database_url.config(
@@ -148,17 +149,18 @@ DATABASES = {
 # DATABASES = {
 #     'default': dj_database_url.config(
 #         default=os.getenv('DATABASE_URL'),
-#         conn_max_age=600
+#         conn_max_age=600,
+#         ssl_require=True,
 #     )
 # }
 
-# STATIC_URL = '/static/'
-# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# SECURE_SSL_REDIRECT = True
-# SESSION_COOKIE_SECURE = True
-# CSRF_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 AUTH_USER_MODEL = 'core.User'
 # Password validation

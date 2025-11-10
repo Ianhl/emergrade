@@ -62,17 +62,18 @@ def load_charts():
 def vton_demo(request):
     ctx = {}
     charts = load_charts()
-    user = request.user
+    
     profile_data_avaliable = False
     try:
-        profile = UserProfile.objects.get(user=user)
+        user = request.user 
         print("Existing profile found")
         profile_data_avaliable = True
     except UserProfile.DoesNotExist:
         print("Profile not found")
         profile_data_avaliable = False
         
-    if profile_data_avaliable:
+    if profile_data_avaliable and request.user.is_authenticated:
+        profile = UserProfile.objects.get(user=user)
         chest = profile.chest
         chest = decrypt(chest)
         waist = profile.waist_circumference
