@@ -63,14 +63,24 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class UserProfile(models.Model):
     # One to one field with an existing user instance
-    user = models.OneToOneField(User,primary_key=True, on_delete=models.CASCADE, related_name='customer_profile', default='', unique=True)
+    user = models.OneToOneField(User,primary_key=True, on_delete=models.CASCADE, related_name='user_profile', default='', unique=True)
     # Choices for dropdown in the various selections. Passed to html template view
-    gender_choices = [
-        ("Male", "Male"),
-        ("Female", "Female"),
-        ("Non-binary", "Non-binary"),
+    body_shape_choices = [
+        ("Hourglass", "Hourglass"),
+        ("Rectangle", "Rectangle"),
+        ("Apple", "Apple"),
+        ("Pear", "Pear"),
+        ("Inverted Traingle", "Inverted Traingle"),
     ]
+    chest = models.DecimalField(max_digits=100, decimal_places=2)
+    waist_circumference = models.DecimalField(max_digits=100, decimal_places=2)
+    hip_circumference = models.DecimalField(max_digits=100, decimal_places=2)
+    Inseam_length = models.DecimalField(max_digits=100, decimal_places=2)
     height = models.DecimalField(max_digits=100, decimal_places=2)
+    weight = models.DecimalField(max_digits=100, decimal_places=2, default='')
+    body_shape = models.CharField(max_length=255, default='', choices=body_shape_choices)
+    image = models.ImageField(upload_to='images')
+    
 
 
 

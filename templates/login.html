@@ -64,20 +64,20 @@
                 </div>
                 
                 <!-- Sign Up Form -->
-                <form class="auth-form active" id="signup-form" method="post">
+                <form class="auth-form active" id="signup-form" method="post" action="{% url 'signup' %}">
                     {% csrf_token %}
                     <div class="form-group">
-                        <label for="signup-name">First Name</label>
-                        <input type="text" id="firstname" name="firstname" class="form-control" placeholder="Enter your fisrt name" required>
+                        <label for="firstname">First Name</label>
+                        <input type="text" id="firstname" name="firstname" class="form-control" placeholder="Enter your first name" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="signup-name">Last Name</label>
+                        <label for="lastname">Last Name</label>
                         <input type="text" id="lastname" name="lastname" class="form-control" placeholder="Enter your last name" required>
                     </div>
                     
                     <div class="form-group">
-                        <label for="signup-email">Email Address</label>
+                        <label for="email">Email Address</label>
                         <input type="email" id="email" name="email" class="form-control" placeholder="Enter your email" required>
                     </div>
                     
@@ -94,7 +94,7 @@
                     <div class="form-group">
                         <label for="signup-confirm-password">Confirm Password</label>
                         <div class="password-input">
-                            <input type="password" id="signup-confirm-password"  name="signup-confirm-password" class="form-control" placeholder="Confirm your password" required>
+                            <input type="password" id="signup-confirm-password" name="signup-confirm-password" class="form-control" placeholder="Confirm your password" required>
                             <button type="button" class="password-toggle">
                                 <i class="fas fa-eye"></i>
                             </button>
@@ -121,7 +121,8 @@
                 </form>
                 
                 <!-- Login Form -->
-                <form class="auth-form" id="login-form">
+                <form class="auth-form" id="login-form" method="post" action="{% url 'signin' %}">
+                    {% csrf_token %}
                     <div class="form-group">
                         <label for="login-email">Email Address</label>
                         <input type="email" id="login-email" name="login-email" class="form-control" placeholder="Enter your email" required>
@@ -130,7 +131,7 @@
                     <div class="form-group">
                         <label for="login-password">Password</label>
                         <div class="password-input">
-                            <input type="password" id="login-password" name="login-password"class="form-control" placeholder="Enter your password" required>
+                            <input type="password" id="login-password" name="login-password" class="form-control" placeholder="Enter your password" required>
                             <button type="button" class="password-toggle">
                                 <i class="fas fa-eye"></i>
                             </button>
@@ -154,7 +155,6 @@
                         <span>or continue with</span>
                     </div>
                     
-                     <button class="hidden" id="register">Sign Up</button></a>
                     <a href="/accounts/google/login"><button type="button" class="btn btn-google">
                         <i class="fab fa-google"></i>
                         Log in with Google
@@ -169,19 +169,26 @@
     </div>
 
     <script>
-        const registerBtn = document.getElementById('register');
-        const loginBtn = document.getElementById('login');
+        function validate_email(email) {
+            const expression = /^[^@]+@\w+(\.\w+)+\w$/;
+            return expression.test(email);
+        }
+        
+        function validate_password(password) {
+            return password.length >= 8;
+        }
+        
+        function validate_field(field) {
+            return field != null && field.length > 0;
+        }
+        
         // Tab switching functionality
         document.querySelectorAll('.auth-tab').forEach(tab => {
             tab.addEventListener('click', function() {
-                // Remove active class from all tabs
                 document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-                // Add active class to clicked tab
                 this.classList.add('active');
                 
-                // Hide all forms
                 document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
-                // Show the form corresponding to the clicked tab
                 const tabId = this.getAttribute('data-tab');
                 document.getElementById(`${tabId}-form`).classList.add('active');
             });
@@ -215,41 +222,61 @@
             });
         });
         
-        // Form submission
-        // registerBtn.addEventListener('click', () => {
-        //     container.classList.add("active");
-        // }); 
-
+        // Sign Up Form validation and submission
         document.getElementById('signup-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const password = document.getElementById('signup-password').value;
-            const confirmPassword = document.getElementById('signup-confirm-password').value;
+            const fname = document.getElementById('firstname').value;
+            const lname = document.getElementById('lastname').value;
+            const email = document.getElementById('email').value;
+            const pass1 = document.getElementById('signup-password').value;
+            const pass2 = document.getElementById('signup-confirm-password').value;
             
-            if (password !== confirmPassword) {
+            // Validate fields
+            if (!validate_field(fname) || !validate_field(lname)) {
+                e.preventDefault();
+                alert('Please enter both first and last name!');
+                return;
+            }
+            
+            if (!validate_email(email)) {
+                e.preventDefault();
+                alert('Please enter a valid email address!');
+                return;
+            }
+            
+            if (!validate_password(pass1)) {
+                e.preventDefault();
+                alert('Password must be at least 8 characters long!');
+                return;
+            }
+            
+            if (pass1 !== pass2) {
+                e.preventDefault();
                 alert('Passwords do not match!');
                 return;
             }
             
-            // In a real application, you would send this data to your server
-            alert('Account created successfully! Redirecting...');
-            // window.location.href = 'dashboard.html';
+            // Form will submit naturally if all validations pass
         });
         
+        // Login Form validation and submission
         document.getElementById('login-form').addEventListener('submit', function(e) {
-            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
             
-            // In a real application, you would send this data to your server
-            alert('Login successful! Redirecting...');
-            // window.location.href = 'dashboard.html';
-        });
-        
-        // Google sign in button
-        document.querySelectorAll('.btn-google').forEach(button => {
-            button.addEventListener('click', function() {
-                // In a real application, this would integrate with Google OAuth
-                alert('Redirecting to Google authentication...');
-                // Implement Google OAuth flow here
-            });
+            // Validate fields
+            if (!validate_email(email)) {
+                e.preventDefault();
+                alert('Please enter a valid email address!');
+                return;
+            }
+            
+            if (!validate_field(password)) {
+                e.preventDefault();
+                alert('Please enter your password!');
+                return;
+            }
+            
+            // Form will submit naturally if all validations pass
         });
     </script>
 </body>

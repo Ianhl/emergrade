@@ -1,0 +1,325 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StyleSense | Complete Your Profile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'user_profile.css' %}" />
+</head>
+<body>
+    <div class="container">
+        <header>
+            <nav class="navbar">
+                <a href="#" class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    Emergrade
+                </a>
+                <div class="user-menu">
+                    <a href='/' class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Homepage
+                    </a>
+                </div>
+            </nav>
+        </header>
+
+        <div class="profile-container">
+            <div class="profile-sidebar">
+                <div class="user-avatar">
+                    <div class="avatar">
+                        <i class="fas fa-user"></i>
+                        <div class="avatar-upload">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                    </div>
+                    {% if user.is_authenticated %}
+                        <h2>{{ user.first_name }} {{ user.last_name }}</h2>
+                        <p>Complete your profile for better recommendations</p>
+                    {% endif %}
+                </div>
+
+                <ul class="nav-links">
+                    <li><a href="#" class="active">
+                        <i class="fas fa-ruler-combined"></i>
+                        Body Measurements
+                    </a></li>
+                </ul>
+            </div>
+
+            <div class="profile-content">
+                <div class="section-title">
+                    <h2>Body Measurements</h2>
+                    <p>Provide accurate measurements for the best virtual try-on experience and personalized recommendations.</p>
+                </div>
+
+                <form class="measurement-form" id="measurement-form" method="post" action="/profile/" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Chest/Bust Measurement -->
+                    <div class="form-group">
+                        <label for="chest">Chest / Bust Circumference</label>
+                        <div class="input-with-unit">
+                            <input type="number" id="chest" name="chest" class="form-control" placeholder="Enter measurement" min="20" max="80" step="0.5" required>
+                            <span class="unit">inches</span>
+                        </div>
+                        <small class="form-text">Measure around the fullest part of your chest/bust</small>
+                    </div>
+
+                    <!-- Waist Measurement -->
+                    <div class="form-group">
+                        <label for="waist">Waist Circumference</label>
+                        <div class="input-with-unit">
+                            <input type="number" id="waist" name="waist" class="form-control" placeholder="Enter measurement" min="20" max="60" step="0.5" required>
+                            <span class="unit">inches</span>
+                        </div>
+                        <small class="form-text">Measure around your natural waistline</small>
+                    </div>
+
+                    <!-- Hip Measurement -->
+                    <div class="form-group">
+                        <label for="hips">Hip Circumference</label>
+                        <div class="input-with-unit">
+                            <input type="number" id="hips" name="hips" class="form-control" placeholder="Enter measurement" min="25" max="70" step="0.5" required>
+                            <span class="unit">inches</span>
+                        </div>
+                        <small class="form-text">Measure around the fullest part of your hips</small>
+                    </div>
+
+                    <!-- Inseam Measurement -->
+                    <div class="form-group">
+                        <label for="inseam">Inseam Length</label>
+                        <div class="input-with-unit">
+                            <input type="number" id="inseam" name="inseam" class="form-control" placeholder="Enter measurement" min="20" max="40" step="0.5" required>
+                            <span class="unit">inches</span>
+                        </div>
+                        <small class="form-text">Measure from your crotch to the bottom of your ankle</small>
+                    </div>
+
+                    <!-- Height Measurement -->
+                    <div class="form-group">
+                        <label for="height">Height</label>
+                        <div class="input-with-unit">
+                            <input type="number" id="height" name="height" class="form-control" placeholder="Enter height" min="48" max="96" step="0.5" required>
+                            <span class="unit">inches</span>
+                        </div>
+                        <small class="form-text">Your height helps us understand your proportions better</small>
+                    </div>
+
+                    <!-- Weight Measurement -->
+                    <div class="form-group">
+                        <label for="weight">Weight (Optional)</label>
+                        <div class="input-with-unit">
+                            <input type="number" id="weight" name="weight" class="form-control" placeholder="Enter weight" min="80" max="400" step="1">
+                            <span class="unit">lbs</span>
+                        </div>
+                        <small class="form-text">Helps refine recommendations but is optional</small>
+                    </div>
+
+                    <!-- Body Shape -->
+                    <div class="form-group full-width">
+                        <label for="body-shape">Body Shape (Optional)</label>
+                        <select id="body-shape" name="body-shape" class="form-control">
+                            <option value="">Select your body shape</option>
+                            <option value="Hourglass">Hourglass</option>
+                            <option value="Rectangle">Rectangle</option>
+                            <option value="Apple">Apple</option>
+                            <option value="Pear">Pear</option>
+                            <option value="Inverted Triangle">Inverted Triangle</option>
+                        </select>
+                        <small class="form-text">This helps us recommend styles that flatter your shape</small>
+                    </div>
+
+                    <!-- Photo Upload -->
+                    <div class="form-group full-width">
+                        <label>Upload Reference Photo (Optional)</label>
+                        <div class="upload-area" id="upload-area">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <h3>Upload a Full-Body Photo</h3>
+                            <p>Drag & drop your image here or click to browse</p>
+                            <button type="button" class="btn btn-secondary" id="browse-btn">
+                                <i class="fas fa-search"></i>
+                                Browse Files
+                            </button>
+                            <input type="file" id="photo-upload" name="photo" accept="image/*" style="display: none;">
+                        </div>
+                        <small class="form-text">A front-facing full-body photo in fitted clothing helps improve virtual try-on accuracy</small>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i>
+                            Save Measurements
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="skip-btn">
+                            Skip for Now
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Measurement Guide -->
+                <div class="measurement-guide">
+                    <div class="guide-header">
+                        <i class="fas fa-info-circle"></i>
+                        <h3>How to Measure Correctly</h3>
+                    </div>
+                    <div class="guide-steps">
+                        <div class="guide-step">
+                            <div class="step-number">1</div>
+                            <h4>Use a Flexible Tape</h4>
+                            <p>Use a soft, flexible measuring tape for accurate results.</p>
+                        </div>
+                        <div class="guide-step">
+                            <div class="step-number">2</div>
+                            <h4>Wear Fitted Clothing</h4>
+                            <p>Wear form-fitting clothes or undergarments when measuring.</p>
+                        </div>
+                        <div class="guide-step">
+                            <div class="step-number">3</div>
+                            <h4>Stand Naturally</h4>
+                            <p>Stand straight but relaxed with feet together.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Browse button click handler
+        document.getElementById('browse-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('photo-upload').click();
+        });
+
+        // Upload area click handler (excluding the button)
+        document.getElementById('upload-area').addEventListener('click', function(e) {
+            if (e.target.id !== 'browse-btn' && !e.target.closest('#browse-btn')) {
+                document.getElementById('photo-upload').click();
+            }
+        });
+
+        // File input change handler
+        document.getElementById('photo-upload').addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const fileName = this.files[0].name;
+                const fileSize = (this.files[0].size / 1024 / 1024).toFixed(2); // Size in MB
+                const uploadArea = document.getElementById('upload-area');
+                
+                uploadArea.innerHTML = `
+                    <i class="fas fa-check-circle" style="color: var(--primary); font-size: 3rem;"></i>
+                    <h3>File Selected</h3>
+                    <p><strong>${fileName}</strong> (${fileSize} MB)</p>
+                    <button type="button" class="btn btn-secondary" id="change-photo">
+                        <i class="fas fa-sync"></i>
+                        Change Photo
+                    </button>
+                `;
+                
+                // Add event listener to the new button
+                document.getElementById('change-photo').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    // Reset the upload area
+                    uploadArea.innerHTML = `
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <h3>Upload a Full-Body Photo</h3>
+                        <p>Drag & drop your image here or click to browse</p>
+                        <button type="button" class="btn btn-secondary" id="browse-btn">
+                            <i class="fas fa-search"></i>
+                            Browse Files
+                        </button>
+                    `;
+                    // Re-attach the browse button event
+                    document.getElementById('browse-btn').addEventListener('click', function(e) {
+                        e.preventDefault();
+                        document.getElementById('photo-upload').click();
+                    });
+                    // Clear the file input
+                    document.getElementById('photo-upload').value = '';
+                });
+            }
+        });
+
+        // Form validation and submission
+        document.getElementById('measurement-form').addEventListener('submit', function(e) {
+            // Basic validation
+            const requiredFields = ['chest', 'waist', 'hips', 'inseam', 'height'];
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                const input = document.getElementById(field);
+                if (!input.value) {
+                    isValid = false;
+                    input.style.borderColor = '#ff6b6b';
+                } else {
+                    input.style.borderColor = '';
+                }
+            });
+            
+            if (!isValid) {
+                e.preventDefault();
+                alert('Please fill in all required measurements.');
+                return false;
+            }
+            
+            // Form will submit naturally if validation passes
+        });
+
+        // Skip button
+        document.getElementById('skip-btn').addEventListener('click', function() {
+            if (confirm('Are you sure? Providing measurements will significantly improve your virtual try-on experience.')) {
+                window.location.href = '/';
+            }
+        });
+
+        // Drag and drop functionality
+        const uploadArea = document.getElementById('upload-area');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            uploadArea.style.borderColor = 'var(--primary)';
+            uploadArea.style.backgroundColor = 'rgba(45, 156, 219, 0.05)';
+        }
+
+        function unhighlight(e) {
+            uploadArea.style.borderColor = '';
+            uploadArea.style.backgroundColor = '';
+        }
+
+        uploadArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+                document.getElementById('photo-upload').files = files;
+                // Trigger the change event
+                const event = new Event('change', { bubbles: true });
+                document.getElementById('photo-upload').dispatchEvent(event);
+            }
+        }
+    </script>
+</body>
+</html>
