@@ -387,6 +387,33 @@
 })();
 </script>
 
+<section class="eeg-integration">
+    <h2>EEG Mental State Analysis</h2>
+    
+    <form method="POST" action="{% url 'start_eeg_sync' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">
+            Start 60-Second EEG Analysis (Page will freeze!)
+        </button>
+    </form>
+
+    <div id="eeg-results-display" style="margin-top: 30px; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
+        {% if eeg_results.analysis_successful %}
+            <h3>Analysis Complete: {{ eeg_results.dominant_band }}</h3>
+            <p style="font-size: 1.1em; font-weight: bold; color: var(--primary);">
+                Mental State: {{ eeg_results.inferred_state }}
+            </p>
+            <p>Average Log Power: {{ eeg_results.avg_power }}</p>
+            <p style="color: var(--gray);">Data from file: {{ eeg_results.file_name }}</p>
+        {% elif error %}
+            <h3 style="color: #FF6F91;">🚨 Error During Process 🚨</h3>
+            <p>{{ error }}</p>
+        {% else %}
+            <p style="color: var(--gray);">Click the button to begin the 60-second EEG recording and analysis.</p>
+        {% endif %}
+    </div>
+</section>
+
 
 </body>
 </html>
