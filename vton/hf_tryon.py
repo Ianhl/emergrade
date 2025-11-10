@@ -5,7 +5,8 @@ from django.conf import settings
 from gradio_client import Client, handle_file  # use handle_file
 from PIL import Image, ImageOps
 
-SPACE = "JeremelleV/IDM-VTON" 
+SPACE = "JeremelleV/idmvton" 
+#SPACE = "https://huggingface.co/spaces/JeremelleV/idmvton"
 client = Client(SPACE)
 
 def _exif_upright_copy(src_path: str) -> str:
@@ -37,16 +38,21 @@ def run_tryon(human_path, garment_path, desc="", steps=30, seed=42, crop=False):
     }
 
     # 2) Call the Space (no float seed/steps)
-    out_path, mask_path = client.predict(
-        dict=editor_input,
-        garm_img=handle_file(garment_fixed),
-        garment_des=desc or "",
-        is_checked=True,
-        is_checked_crop=bool(crop),
-        denoise_steps=int(steps),
-        seed=int(seed),
-        api_name="/tryon",
-    )
+    try:
+        out_path, mask_path = client.predict(
+            dict=editor_input,
+            garm_img=handle_file(garment_fixed),
+            garment_des=desc or "",
+            is_checked=True,
+            is_checked_crop=bool(crop),
+            denoise_steps=int(steps),
+            seed=int(seed),
+            api_name="/tryon",
+        )
+    except Exception as e:
+        # surface to template/logs so you know it didn’t reach the Space
+        raise RuntimeError(f"HF call failed: {type(e).__name__}: {e}")
+
 
     # 3) Copy outputs verbatim (DO NOT rotate/resize) → ensures no distortion
     media_root = Path(settings.MEDIA_ROOT) / "tryon"

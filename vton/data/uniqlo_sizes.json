@@ -1,0 +1,20 @@
+{
+  "products": [
+    {
+      "sku": "480662",
+      "name": "Mock Company – Crew Neck T-Shirt",
+      "category": "top_knit",
+      "stretch": true,
+      "units": "cm",
+      "sizes": [
+        { "label": "XXS", "length": 56.5, "shoulder": 37.5, "chest": 83.8 },
+        { "label": "XS",  "length": 57.8, "shoulder": 38.7, "chest": 88.9 },
+        { "label": "S",   "length": 59.7, "shoulder": 39.4, "chest": 94.0 },
+        { "label": "M",   "length": 62.2, "shoulder": 41.3, "chest": 100.3 },
+        { "label": "L",   "length": 64.8, "shoulder": 42.5, "chest": 105.4 },
+        { "label": "XL",  "length": 66.7, "shoulder": 43.8, "chest": 111.8 },
+        { "label": "XXL", "length": 67.9, "shoulder": 44.5, "chest": 118.1 }
+      ]
+    }
+  ]
+}
