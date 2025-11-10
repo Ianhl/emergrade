@@ -63,7 +63,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class UserProfile(models.Model):
     # One to one field with an existing user instance
-    user = models.OneToOneField(User,primary_key=True, on_delete=models.CASCADE, related_name='user_profile', default='', unique=True)
+    user = models.OneToOneField(User,primary_key=True, on_delete=models.CASCADE, related_name='user_profile')
     # Choices for dropdown in the various selections. Passed to html template view
     body_shape_choices = [
         ("Hourglass", "Hourglass"),
@@ -72,14 +72,22 @@ class UserProfile(models.Model):
         ("Pear", "Pear"),
         ("Inverted Traingle", "Inverted Traingle"),
     ]
-    chest = models.DecimalField(max_digits=100, decimal_places=2)
-    waist_circumference = models.DecimalField(max_digits=100, decimal_places=2)
-    hip_circumference = models.DecimalField(max_digits=100, decimal_places=2)
-    Inseam_length = models.DecimalField(max_digits=100, decimal_places=2)
-    height = models.DecimalField(max_digits=100, decimal_places=2)
-    weight = models.DecimalField(max_digits=100, decimal_places=2, default='')
+    chest = models.CharField(max_length=250)
+    waist_circumference = models.CharField(max_length=250)
+    hip_circumference = models.CharField(max_length=250)
+    Inseam_length = models.CharField(max_length=250)
+    height = models.CharField(max_length=250)
+    weight = models.CharField(max_length=250, blank=True, null=True, default=None) 
+    # weight = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True, default=None) 
     body_shape = models.CharField(max_length=255, default='', choices=body_shape_choices)
-    image = models.ImageField(upload_to='images')
+    image = models.ImageField(upload_to='images', blank=True, null=True)
+
+    class Meta:
+        verbose_name = 'User Profile'
+        verbose_name_plural = 'User Profiles'
+    
+    def __str__(self):
+        return f"{self.user.email}'s Profile"
     
 
 

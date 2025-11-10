@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .models import User,UserProfile
 from django.shortcuts import get_object_or_404, render
+from .encryption import encrypt, decrypt
 
 # Create your views here.
 def main(request):
@@ -17,50 +18,82 @@ def user_profile_view(request):
 
 def user_profile(request):
     if request.method == "POST":
+        # Check if user is authenticated
+        if not request.user.is_authenticated:
+            messages.error(request, "You must be logged in to update your profile")
+            return redirect('login')
+        
         # Get the measurements from POST data
         chest = request.POST.get('chest')
         waist_circumference = request.POST.get('waist')
         hip_circumference = request.POST.get('hips')
         inseam = request.POST.get('inseam')
         height = request.POST.get('height')
-        weight = request.POST.get('weight', 0)  # Default to 0 if not provided
+        weight = request.POST.get('weight')  # Get weight
         body_shape = request.POST.get('body-shape', '')
         
-        # Get the uploaded photo from FILES (not POST!)
-        photo = request.FILES.get('photo')  # THIS IS THE KEY CHANGE
-        
-        # Get the current logged-in user
-        if not request.user.is_authenticated:
-            messages.error(request, "You must be logged in to update your profile")
-            return redirect('login')
+        # CRITICAL: Get the uploaded photo from FILES (not POST!)
+        photo = request.FILES.get('photo')
         
         user = request.user
         
         # Try to get existing profile or create a new one
         try:
             profile = UserProfile.objects.get(user=user)
+            print("Existing profile found")
         except UserProfile.DoesNotExist:
             profile = UserProfile(user=user)
+            print("Creating new profile")
         
         # Update profile fields
+        chest = encrypt(str(chest))
+        waist_circumference = encrypt(str(waist_circumference))
+        hip_circumference = encrypt(str(hip_circumference))
+        inseam = encrypt(str(inseam))
+        height = encrypt(str(height))
+        
+
+
+
         profile.chest = chest
         profile.waist_circumference = waist_circumference
         profile.hip_circumference = hip_circumference
-        profile.Inseam_length = inseam  # Note: Your model has capital I
+        profile.Inseam_length = inseam
         profile.height = height
-        profile.weight = weight if weight else 0
+        
+        # Handle weight properly - only set if provided
+        if weight and weight.strip():
+            weight = encrypt(str(weight))
+            profile.weight = weight
+        else:
+            profile.weight = None
+        
         profile.body_shape = body_shape
         
-        # Only update image if a new one was uploaded
+        # CRITICAL: Only update image if a new one was uploaded
         if photo:
             profile.image = photo
+            print(f"Image uploaded: {photo.name}, Size: {photo.size} bytes")
+        else:
+            print("No image uploaded")
         
+        # Debug print before saving
+        print(f"Saving profile with image: {profile.image}")
+        
+        # Save the profile
         profile.save()
+        
+        # Debug print after saving
+        print(f"Profile saved! Image path: {profile.image}")
+        if profile.image:
+            print(f"Image URL: {profile.image.url}")
         
         messages.success(request, "Profile updated successfully!")
         return redirect('core-main')
     
-    return render(request, "user_profile.html")
+    # GET request - render the form
+    return render(request, "user_profile2.html")
+
 
 def signup(request):
     if request.method == "POST":
