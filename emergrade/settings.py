@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+import dj_database_url
 
 
 load_dotenv()
@@ -25,6 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 SECRET_KEY = 'django-insecure-py&!)*mcq9f7@^f(%zljl773wxncv8-*q2k++ds#m8_hu!^za&'
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -33,6 +35,8 @@ DEBUG = True
 #ALLOWED_HOSTS = []
 # Allowed hosts for testing
 
+# ALLOWED_HOSTS = ['your-app-name.onrender.com', 'localhost', '127.0.0.1']
+# DATABASES = {'default': dj_database_url.config(default='sqlite:///db.sqlite3')}
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS = True
@@ -89,6 +93,8 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "allauth.account.middleware.AccountMiddleware",
 
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
+
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -126,6 +132,28 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default = f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+#         conn_max_age=600,
+#     )
+# }
+
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default=os.getenv('DATABASE_URL'),
+#         conn_max_age=600
+#     )
+# }
+
+# STATIC_URL = '/static/'
+# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# SECURE_SSL_REDIRECT = True
+# SESSION_COOKIE_SECURE = True
+# CSRF_COOKIE_SECURE = True
 
 AUTH_USER_MODEL = 'core.User'
 # Password validation
