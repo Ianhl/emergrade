@@ -1,29 +1,23 @@
 # -*- coding: utf-8 -*-
 """
-Estimate Relaxation from Band Powers
+Muse EEG Activity Tracker - CLI Session Manager (with Muselsl Integration)
 
-This example shows how to buffer, epoch, and transform EEG data from a single
-electrode into values for each of the classic frequencies (e.g. alpha, beta, theta)
-Furthermore, it shows how ratios of the band powers can be used to estimate
-mental state for neurofeedback.
-
-The neurofeedback protocols described here are inspired by
-*Neurofeedback: A Comprehensive Review on System Design, Methodology and Clinical Applications* by Marzbani et. al
-
-Adapted from https://github.com/NeuroTechX/bci-workshop
+This script now attempts to automatically start the 'muselsl stream' process
+before connecting to the LSL stream, ensuring a self-contained CLI experience.
+Now supports multiple channels.
 """
 
 from datetime import datetime
-import numpy as np  # Module that simplifies computations on matrices
-import matplotlib.pyplot as plt  # Module used for plotting
-from pylsl import StreamInlet, resolve_byprop  # Module to receive EEG data
-import utils  # Our own utility functions
+import numpy as np
+from pylsl import StreamInlet, resolve_byprop
+import utils
 import csv
 import time
+import sys
+import subprocess
+import os
 
-# Handy little enum to make code more readable
-
-
+# --- Constants and Configuration ---
 class Band:
     Delta = 0
     Theta = 1
@@ -31,154 +25,161 @@ class Band:
     Beta = 3
     Gamma = 4
 
-
-""" EXPERIMENTAL PARAMETERS """
-# Modify these to change aspects of the signal processing
-
-# Length of the EEG data buffer (in seconds)
-# This buffer will hold last n seconds of data and be used for calculations
 BUFFER_LENGTH = 5
-
-# Length of the epochs used to compute the FFT (in seconds)
 EPOCH_LENGTH = 1
-
-# Amount of overlap between two consecutive epochs (in seconds)
 OVERLAP_LENGTH = 0.8
-
-# Amount to 'shift' the start of each next consecutive epoch
 SHIFT_LENGTH = EPOCH_LENGTH - OVERLAP_LENGTH
 
+# *** FIX: Using multiple channels for better signal strength ***
 # Index of the channel(s) (electrodes) to be used
-# 0 = left ear, 1 = left forehead, 2 = right forehead, 3 = right ear
-INDEX_CHANNEL = [0]
+# Common indices: 0=TP9 (Left Ear), 1=AF7 (Left Forehead), 2=AF8 (Right Forehead), 3=TP10 (Right Ear)
+INDEX_CHANNEL = [0, 1, 2, 3] # Using all 4 channels now for best results
+N_CHANNELS = len(INDEX_CHANNEL) # Calculate the required number of channels
 
-if __name__ == "__main__":
 
-    """ 1. CONNECT TO EEG STREAM """
+def start_muselsl_stream():
+    """Starts the 'muselsl stream' subprocess."""
+    print("Attempting to start 'muselsl stream' process...")
+    try:
+        process = subprocess.Popen(
+            ['muselsl', 'stream'],
+            stdout=sys.stdout,
+            stderr=sys.stderr,
+            text=True
+        )
+        print("Waiting 10 seconds for Muse Bluetooth connection...")
+        time.sleep(10)
+        return process
+    except FileNotFoundError:
+        print("\nFATAL ERROR: 'muselsl' command not found.")
+        print("Please ensure 'muselsl' is installed and accessible in your environment.")
+        return None
+    except Exception as e:
+        print(f"\nFATAL ERROR starting muselsl stream: {e}")
+        return None
 
-    # Search for active LSL streams
-    print('Looking for an EEG stream...')
-    streams = resolve_byprop('type', 'EEG', timeout=2)
-    if len(streams) == 0:
-        raise RuntimeError('Can\'t find EEG stream.')
 
-    # Set active EEG stream to inlet and apply time correction
-    print("Start acquiring data")
-    inlet = StreamInlet(streams[0], max_chunklen=12)
-    eeg_time_correction = inlet.time_correction()
-
-    # Get the stream info and description
-    info = inlet.info()
-    description = info.desc()
-
-    # Get the sampling frequency
-    # This is an important value that represents how many EEG data points are
-    # collected in a second. This influences our frequency band calculation.
-    # for the Muse 2016, this should always be 256
-    fs = int(info.nominal_srate())
-
-    """ 2. INITIALIZE BUFFERS """
-
-    # Initialize raw EEG data buffer
-    eeg_buffer = np.zeros((int(fs * BUFFER_LENGTH), 1))
-    filter_state = None  # for use with the notch filter
-
-    # Compute the number of epochs in "buffer_length"
-    n_win_test = int(np.floor((BUFFER_LENGTH - EPOCH_LENGTH) /
-                              SHIFT_LENGTH + 1))
-
-    # Initialize the band power buffer (for plotting)
-    # bands will be ordered: [delta, theta, alpha, beta, gamma]
-    band_buffer = np.zeros((n_win_test, 5))
-
-    """ 3. GET DATA """
-
-    csv_filename = f"eeg_band_powers_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+def connect_to_stream():
+    """ Connects to the LSL EEG stream. """
+    print('Looking for an EEG stream (LSL)...')
+    streams = resolve_byprop('type', 'EEG', timeout=5)
     
+    if len(streams) == 0:
+        raise RuntimeError('Can\'t find LSL EEG stream. Muse-LSL failed to start or connect.')
+
+    print(f"Successfully found EEG stream. Starting acquisition for {N_CHANNELS} channels.")
+    inlet = StreamInlet(streams[0], max_chunklen=12)
+    inlet.time_correction()
+    fs = int(inlet.info().nominal_srate())
+
+    return inlet, fs
+
+
+def record_session(inlet, fs):
+    """ The main recording loop that pulls data and writes to CSV. """
+    
+    # *** FIX: Initialize EEG buffer with the correct number of channels ***
+    # The shape must be (buffer_samples, N_CHANNELS)
+    eeg_buffer = np.zeros((int(fs * BUFFER_LENGTH), N_CHANNELS))
+    filter_state = None
+
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    csv_filename = f"eeg_session_{timestamp}.csv"
+
+    # The CSV header must reflect all 4 channels for all 5 bands (20 columns total)
+    bands = ['Delta', 'Theta', 'Alpha', 'Beta', 'Gamma']
+    ch_names = [f'Ch{i+1}' for i in INDEX_CHANNEL]
+    header = ['Timestamp'] + [f'{band}_{ch}' for band in bands for ch in ch_names]
+
     with open(csv_filename, 'w', newline='') as csvfile:
         csv_writer = csv.writer(csvfile)
-        # Data Headers
-        csv_writer.writerow(['Delta', 'Theta', 'Alpha', 'Beta', 'Gamma'])
-    
+        csv_writer.writerow(header)
 
+    print(f'*** Recording started! Data is being saved to {csv_filename} ***')
+    print('*** Press Ctrl-C to STOP the recording. ***')
 
-    # The try/except structure allows to quit the while loop by aborting the
-    # script with <Ctrl-C>
-    print('Press Ctrl-C in the console to break the while loop.')
-
+    start_time = time.time()
     try:
-        # The following loop acquires data, computes band powers, and calculates neurofeedback metrics based on those band powers
-        # start_time = time.time()
-        # now_time = time.time()
         while True:
-            # now_time = time.time()
-
-            """ 3.1 ACQUIRE DATA """
-            # Obtain EEG data from the LSL stream
+            # --- 3.1 ACQUIRE DATA ---
             eeg_data, timestamp = inlet.pull_chunk(
                 timeout=1, max_samples=int(SHIFT_LENGTH * fs))
 
-            # Only keep the channel we're interested in
+            if not eeg_data:
+                continue
+
+            # Select the specified channels (e.g., [0, 1, 2, 3])
             ch_data = np.array(eeg_data)[:, INDEX_CHANNEL]
 
-            # Update EEG buffer with the new data
+            # Update EEG buffer (this is where the previous error occurred)
+            # The buffer size (N_CHANNELS) now matches ch_data size
             eeg_buffer, filter_state = utils.update_buffer(
                 eeg_buffer, ch_data, notch=True,
                 filter_state=filter_state)
 
-            """ 3.2 COMPUTE BAND POWERS """
-            # Get newest samples from the buffer
-            data_epoch = utils.get_last_data(eeg_buffer,
-                                             EPOCH_LENGTH * fs)
-
-            # Compute band powers
-            band_powers = utils.compute_band_powers(data_epoch, fs)
-            band_buffer, _ = utils.update_buffer(band_buffer,
-                                                 np.asarray([band_powers]))
-            # Compute the average band powers for all epochs in buffer
-            # This helps to smooth out noise
-            smooth_band_powers = np.mean(band_buffer, axis=0)
-
-            current_time = datetime.now()
-
-            print('Delta:', band_powers[Band.Delta], ' Theta:', band_powers[Band.Theta],
-                  ' Alpha:', band_powers[Band.Alpha], ' Beta:', band_powers[Band.Beta], ' Gamma:', band_powers[Band.Gamma])
+            # --- 3.2 COMPUTE BAND POWERS ---
+            data_epoch = utils.get_last_data(eeg_buffer, EPOCH_LENGTH * fs)
             
+            # band_powers is now a 20-element 1D array (5 bands * 4 channels)
+            band_powers = utils.compute_band_powers(data_epoch, fs)
 
+            # For console logging, we average the Alpha and Beta powers across channels
+            avg_alpha = np.mean(band_powers[Band.Alpha * N_CHANNELS : (Band.Alpha + 1) * N_CHANNELS])
+            avg_beta = np.mean(band_powers[Band.Beta * N_CHANNELS : (Band.Beta + 1) * N_CHANNELS])
+            
+            print(f"Time: {time.time() - start_time:.1f}s | Avg Alpha={avg_alpha:.2f}, Avg Beta={avg_beta:.2f}")
+
+            # Append all 20 band power values to the CSV file
             with open(csv_filename, 'a', newline='') as csvfile:
                 csv_writer = csv.writer(csvfile)
-                csv_writer.writerow([
-                    band_powers[Band.Delta],
-                    band_powers[Band.Theta],
-                    band_powers[Band.Alpha],
-                    band_powers[Band.Beta],
-                    band_powers[Band.Gamma]
-                ])
-
-            """ 3.3 COMPUTE NEUROFEEDBACK METRICS """
-            # These metrics could also be used to drive brain-computer interfaces
-
-            # Alpha Protocol:
-            # Simple redout of alpha power, divided by delta waves in order to rule out noise
-            # alpha_metric = smooth_band_powers[Band.Alpha] / \
-            #     smooth_band_powers[Band.Delta]
-            # print('Alpha Relaxation: ', alpha_metric)
-
-            # Beta Protocol:
-            # Beta waves have been used as a measure of mental activity and concentration
-            # This beta over theta ratio is commonly used as neurofeedback for ADHD
-            # beta_metric = smooth_band_powers[Band.Beta] / \
-            #     smooth_band_powers[Band.Theta]
-            # print('Beta Concentration: ', beta_metric)
-
-            # Alpha/Theta Protocol:
-            # This is another popular neurofeedback metric for stress reduction
-            # Higher theta over alpha is supposedly associated with reduced anxiety
-            # theta_metric = smooth_band_powers[Band.Theta] / \
-            #     smooth_band_powers[Band.Alpha]
-            # print('Theta Relaxation: ', theta_metric)
+                row = [datetime.now().strftime('%H:%M:%S.%f')] + band_powers.tolist()
+                csv_writer.writerow(row)
 
     except KeyboardInterrupt:
-        print('Closing!')
+        print(f'\n*** Recording stopped by user. Data saved to {csv_filename} ***')
+        return csv_filename
+    except Exception as e:
+        print(f"\nAn error occurred during recording: {e}")
+        return None
 
 
+def main_session():
+    """ Manages the full lifecycle: start muselsl, connect, record, clean up. """
+    muselsl_process = None
+    try:
+        # 1. Start muselsl stream
+        muselsl_process = start_muselsl_stream()
+        if not muselsl_process:
+            return
+
+        # 2. Wait for user to trigger start
+        print('\n--- READY ---')
+        print('Press ENTER to begin recording the activity (after Muse connects).')
+        sys.stdin.readline()
+
+        # 3. Connect to LSL stream
+        inlet, fs = connect_to_stream()
+
+        # 4. Record
+        session_file = record_session(inlet, fs)
+
+        if session_file:
+            print(f"\nSession file generated: {session_file}")
+            print("To analyze, run: python eeg_analyzer.py " + session_file)
+
+    except RuntimeError as e:
+        print(f"Fatal Error: {e}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+    finally:
+        # 5. Terminate muselsl process
+        if muselsl_process and muselsl_process.poll() is None:
+            print('\nAttempting to terminate muselsl stream process...')
+            muselsl_process.terminate()
+            muselsl_process.wait()
+            print('Muselsl stream process terminated.')
+        print('Exiting EEG session manager.')
+
+
+if __name__ == "__main__":
+    main_session()
