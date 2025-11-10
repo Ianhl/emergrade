@@ -90,11 +90,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'emergrade.wsgi.application'
 
-# Media
-
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
-
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 

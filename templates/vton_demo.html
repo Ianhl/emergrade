@@ -145,7 +145,7 @@
         </div>
 
         <div class="center-row">
-          <button id="tryonBtn" type="submit" class="arrow-btn" aria-label="Try On">
+          <button id="tryonBtn" type="submit" class="arrow-btn" name="action" value="tryon" aria-label="Try On">
             Try On
           </button>
         </div>
@@ -165,8 +165,43 @@
         </div>
       </div>
 
+      <div class="card" style="grid-column: 1 / -1;margin-top: 20px;">
+
+
+
+  <h3>Buying from one of our partners?</h3>
+  <p>Check your size</p>
+
+  <div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:center">
+    <label><strong>Company</strong></label>
+    <select name="company" form="tryonForm" onchange="/* keep same form */" style="padding:.4rem;border:1px solid #ddd;border-radius:8px">
+      {% for c in companies %}
+        <option value="{{ c|lower }}" {% if company == c|lower %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    </select>
+
+    <label style="margin-left:.5rem"><strong>Product ID</strong></label>
+    <input type="text" name="product_id" form="tryonForm" value="{{ product_id|default:'' }}"
+           placeholder="e.g. {{ demo_product_hint }}"
+           style="padding:.4rem;border:1px solid #ddd;border-radius:8px;min-width:220px">
+
+    <!-- demo body measurements -->
+    <label style="margin-left:.5rem"><strong>Chest (cm)</strong></label>
+    <input type="number" step="0.1" name="chest" form="tryonForm" value="{{ chest|default:'92' }}" style="padding:.35rem;border:1px solid #ddd;border-radius:8px;width:90px">
+    <label><strong>Shoulder (cm)</strong></label>
+    <input type="number" step="0.1" name="shoulder" form="tryonForm" value="{{ shoulder|default:'42' }}" style="padding:.35rem;border:1px solid #ddd;border-radius:8px;width:90px">
+
+    <button class="btn" type="submit" form="tryonForm" name="action" value="check_size">Check size</button>
+  </div>
+
     </form>
   </div>
+
+  {% if size_blurb %}
+    <p style="margin-top:.6rem;font-weight:600">{{ size_blurb }}</p>
+  {% endif %}
+</div>
+
 
   <script>
     // ---------- file/paste helpers ----------
