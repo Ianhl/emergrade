@@ -279,5 +279,114 @@
       if (ph) ph.textContent = 'Generating… please wait.';
     });
   </script>
+
+<script>
+(function(){
+  // Simple notice
+  const infoBanner = document.createElement('div');
+  infoBanner.style = "background:#eef7ff;border:1px solid #c8e1ff;padding:.6rem 1rem;border-radius:10px;margin:0.75rem auto;max-width:900px";
+  infoBanner.innerHTML = "<b>Heads up:</b> while your image generates (~1 minute), wear your <b>Muse 2</b> headset. We'll estimate your focus to help reduce impulsive purchases.";
+  document.querySelector(".wrap")?.insertBefore(infoBanner, document.querySelector(".wrap").children[1]);
+
+  const form = document.getElementById('tryonForm');
+  const btn  = document.getElementById('tryonBtn');
+  const loadingMsg = document.getElementById('loadingMsg');
+  const resultBox  = document.getElementById('resultBox');
+
+  // Use a fixed session for demo so the laptop bridge can connect easily
+  const SESSION_ID = "demo";
+
+  // Browser receives Muse summaries via WS (read-only)
+  let museWS = null, latestFocus = null;
+  function openMuseWS() {
+    const scheme = location.protocol === 'https:' ? 'wss' : 'ws';
+    museWS = new WebSocket(`${scheme}://${location.host}/ws/muse/${SESSION_ID}/`);
+    museWS.onopen = ()=>console.log('Muse WS open');
+    museWS.onmessage = (e)=>{
+      try{
+        const msg = JSON.parse(e.data);
+        if (msg.kind === 'muse_tick' && typeof msg.focus === 'number') {
+          latestFocus = msg.focus;
+        }
+        if (msg.kind === 'model' && typeof msg.focus === 'number') {
+          latestFocus = msg.focus;
+        }
+      }catch{}
+    };
+  }
+  openMuseWS();
+
+  function getCookie(name) {
+    const v = document.cookie.split('; ').find(r => r.startsWith(name+'='));
+    return v ? decodeURIComponent(v.split('=')[1]) : '';
+  }
+
+  const facts = [
+    "An estimated 92 million tons of textiles end up in landfills each year.",
+    "Extending a garment’s life by 9 months can reduce its carbon, water, and waste footprints by ~20–30%.",
+    "Buying fewer, better-made items is the most effective way to cut fashion’s footprint."
+  ];
+  const pickFact = () => facts[Math.floor(Math.random()*facts.length)];
+
+  function buildBlurb(focusVal) {
+    const f = (typeof focusVal === 'number') ? focusVal : 0.5;
+    let advice;
+    if (f < 0.35) advice = "Based on your brainwave data, you don’t seem very focused right now. Consider taking a moment before deciding on this garment.";
+    else if (f < 0.6) advice = "Your focus appears moderate. Take a breath and review the details before purchasing.";
+    else advice = "You appear focused. If you like the fit and details, this could be a good choice.";
+    return `${advice} <br><small style="color:#476282">Eco tip: ${pickFact()}</small>`;
+  }
+
+  form?.addEventListener('submit', async (ev)=>{
+    const targetBtn = ev.submitter;
+    if (!targetBtn || targetBtn.name !== "action" || targetBtn.value !== "tryon") return;
+    ev.preventDefault();
+
+    // UI lock
+    btn.disabled = true; btn.textContent = 'Processing…'; btn.style.opacity = .7;
+    loadingMsg.style.display = 'block';
+
+    // Tell the server (and your teammate) which session the bridge should use:
+    console.log(`Muse bridge should connect to: ws://<server>/ws/muse/${SESSION_ID}/`);
+
+    // Submit images via JSON API (no page reload)
+    try {
+      const fd = new FormData(form);
+      const resp = await fetch("{% url 'tryon_api' %}", {
+        method: "POST",
+        headers: {"X-CSRFToken": getCookie("csrftoken")},
+        body: fd
+      });
+      const data = await resp.json();
+
+      if (!data.ok) throw new Error(data.error || "Try-on failed.");
+
+      // Ask the WS for latest focus if we didn't receive a recent one
+      if (!latestFocus && museWS && museWS.readyState === 1) {
+        museWS.send(JSON.stringify({type:"get_latest"}));
+        // small grace period
+        await new Promise(r=>setTimeout(r, 300));
+      }
+
+      // Show result image
+      resultBox.innerHTML = `<img src="${data.out_url}" alt="Output image" style="width:100%;height:100%;object-fit:contain">`;
+
+      // Show blurb
+      const blurb = document.createElement('div');
+      blurb.style = "margin-top:.5rem;background:#f7fbff;border:1px solid #d6e9ff;padding:.6rem;border-radius:10px";
+      blurb.innerHTML = buildBlurb(latestFocus);
+      resultBox.parentElement.appendChild(blurb);
+
+    } catch (err) {
+      alert(err.message || err);
+    } finally {
+      btn.disabled = false; btn.textContent = 'Try On'; btn.style.opacity = 1;
+      loadingMsg.style.display = 'none';
+    }
+  });
+})();
+</script>
+
+
 </body>
 </html>

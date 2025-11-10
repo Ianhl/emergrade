@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 
+from dotenv import load_dotenv
+load_dotenv()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -34,7 +37,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-ALLOWED_HOSTS = ["*", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["*", "localhost", "127.0.0.1","cautious-funicular-v6qv7vrjg65qfvxp-8000.app.github.dev"]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
@@ -59,6 +62,7 @@ INSTALLED_APPS = [
     'core',
     'vton',
     'impulse_monitoring',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -87,6 +91,11 @@ TEMPLATES = [
         },
     },
 ]
+
+ASGI_APPLICATION = "emergrade.asgi.application"
+CHANNEL_LAYERS = {
+    "default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}
+}
 
 WSGI_APPLICATION = 'emergrade.wsgi.application'
 

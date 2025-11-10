@@ -3,6 +3,35 @@ import json, pathlib, os, tempfile, traceback
 from django.shortcuts import render
 from .hf_tryon import run_tryon
 from .services.size_recommender import ProductChart, SizeRow, recommend_top_size
+from django.http import JsonResponse
+
+def vton_tryon_api(request):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "POST required"}, status=405)
+
+    person  = request.FILES.get("person")
+    garment = request.FILES.get("garment")
+    if not (person and garment):
+        return JsonResponse({"ok": False, "error": "Please attach person and garment images."}, status=400)
+
+    def save_tmp(fobj):
+        suffix = pathlib.Path(fobj.name).suffix or ".png"
+        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+        for chunk in fobj.chunks(): tmp.write(chunk)
+        tmp.flush(); tmp.close()
+        return tmp.name
+
+    p_path = save_tmp(person); g_path = save_tmp(garment)
+    try:
+        out_url, _mask_url = run_tryon(p_path, g_path)
+        return JsonResponse({"ok": True, "out_url": out_url})
+    except Exception as e:
+        print("TRY-ON ERROR:", e); print(traceback.format_exc())
+        return JsonResponse({"ok": False, "error": str(e)}, status=500)
+    finally:
+        for p in (p_path, g_path):
+            try: os.remove(p)
+            except: pass
 
 _CHARTS = None
 def load_charts():

@@ -4,10 +4,14 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django = "*"
 gradio-client = "*"
-python-dotenv = "*"
 muselsl = "*"
+python-dotenv = "*"
+django = "*"
+channels = "*"
+daphne = "*"
+websockets = "*"
+certifi = "*"
 
 [dev-packages]
 

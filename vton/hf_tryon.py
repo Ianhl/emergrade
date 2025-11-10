@@ -5,7 +5,7 @@ from django.conf import settings
 from gradio_client import Client, handle_file  # use handle_file
 from PIL import Image, ImageOps
 
-SPACE = "JeremelleV/idmvton" 
+SPACE = "JeremelleV/emergrade" 
 #SPACE = "https://huggingface.co/spaces/JeremelleV/idmvton"
 client = Client(SPACE)
 
